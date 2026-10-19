@@ -73,7 +73,16 @@ body{
 .nav button:hover{background:var(--chip);color:var(--text)}
 .nav button.active{background:var(--chip);color:var(--accent);font-weight:600}
 .nav svg{width:18px;height:18px;flex:0 0 18px}
-.main{flex:1;min-width:0;padding:22px 26px 40px;max-width:1180px}
+.main{flex:1;min-width:0;padding:22px 26px 40px;max-width:1400px;margin:0 auto}
+/* ---------- top bar / month selector ---------- */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 18px;flex-wrap:wrap}
+.topbar-label{font-size:13px;color:var(--muted);font-weight:500}
+.seg{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:3px;box-shadow:var(--shadow)}
+.seg button{
+  all:unset;cursor:pointer;padding:8px 20px;border-radius:8px;
+  font-size:13.5px;color:var(--muted);white-space:nowrap;text-align:center;
+}
+.seg button.active{background:var(--accent);color:#fff;font-weight:600}
 /* ---------- section ---------- */
 .section{display:none}
 .section.active{display:block}
@@ -109,15 +118,23 @@ body{
 .chart{width:100%;height:auto;display:block}
 .chart .grid{stroke:var(--line);stroke-width:1}
 .chart .axis{stroke:var(--line);stroke-width:1}
-.chart .tick{fill:var(--muted);font-size:12px;font-family:inherit}
-.chart .vlabel{fill:var(--text);font-size:11.5px;font-family:inherit;font-weight:500}
+.chart .tick{fill:var(--muted);font-size:14px;font-family:inherit}
+.chart .vlabel{fill:var(--text);font-size:14px;font-family:inherit;font-weight:600}
+.chart .halo{paint-order:stroke;stroke:var(--card);stroke-width:4px;stroke-linejoin:round}
+.chart .dimmed{opacity:.38}
 .bar-a{fill:var(--accent)}
 .bar-b{fill:var(--accent-2)}
+.bar-neg{fill:var(--danger)}
 .bar-soft{fill:var(--accent);opacity:.45}
 .bar-1{fill:var(--accent)}
 .bar-2{fill:#4a9d8f}
 .bar-3{fill:var(--accent-2)}
 .bar-4{fill:var(--danger)}
+.line-a{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.line-b{fill:none;stroke:var(--accent-2);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.pt-a{fill:var(--card);stroke:var(--accent);stroke-width:2.5}
+.pt-b{fill:var(--card);stroke:var(--accent-2);stroke-width:2.5}
+.pt-sel{stroke-width:3.5}
 .legend{display:flex;gap:16px;font-size:12.5px;color:var(--muted);margin:0 0 10px}
 .legend i{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:6px;vertical-align:-1px}
 /* ---------- lists ---------- */
@@ -131,7 +148,8 @@ body{
 .attn .t{font-size:14px;font-weight:500}
 .attn .d{font-size:12.5px;color:var(--muted)}
 /* ---------- sub tabs ---------- */
-.subtabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;overflow-x:auto}
+.subtabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+.subtabs::-webkit-scrollbar{display:none}
 .subtabs button{
   all:unset;cursor:pointer;padding:9px 14px;font-size:13.5px;color:var(--muted);
   border-bottom:2px solid transparent;white-space:nowrap;margin-bottom:-1px;
@@ -190,6 +208,9 @@ tr.total td{font-weight:700;border-top:2px solid var(--line)}
   .kpis{grid-template-columns:repeat(2,1fr)}
   .two,.cols-3-2{grid-template-columns:1fr}
   .sec-head h1{font-size:19px}
+  .topbar{width:100%;margin-bottom:14px}
+  .seg{display:flex;width:100%}
+  .seg button{flex:1;text-align:center;padding:11px 8px;font-size:14.5px;min-height:44px}
 }
 @media (max-width: 420px){
   .kpis{grid-template-columns:1fr 1fr}
@@ -228,11 +249,19 @@ tr.total td{font-weight:700;border-top:2px solid var(--line)}
 
   <main class="main">
 
+    <div class="topbar">
+      <span class="topbar-label">Reporting month</span>
+      <div class="seg" id="month-seg" role="tablist" aria-label="Reporting month">
+        <button data-month="Aug" role="tab" aria-selected="false">Aug 2026</button>
+        <button data-month="Sep" role="tab" aria-selected="true" class="active">Sep 2026</button>
+      </div>
+    </div>
+
     <!-- ============ OVERVIEW ============ -->
     <section class="section active" id="sec-overview">
       <div class="sec-head">
         <h1>Overview</h1>
-        <p>September 2026 · all amounts in million UZS</p>
+        <p id="ov-period">September 2026 · all amounts in million UZS</p>
       </div>
 
       <div class="grid kpis" id="kpi-grid"></div>
@@ -243,30 +272,14 @@ tr.total td{font-weight:700;border-top:2px solid var(--line)}
           <p class="sub">Monthly, Apr–Sep 2026 · mln UZS</p>
           <div class="legend">
             <span><i style="background:var(--accent)"></i>Revenue</span>
-            <span><i style="background:var(--accent-2)"></i>Net profit</span>
+            <span><i style="background:var(--accent-2)"></i>Net profit (right axis)</span>
           </div>
           <div id="chart-overview"></div>
         </div>
         <div class="card">
           <h2>Needs attention</h2>
-          <p class="sub">Items to act on this week</p>
-          <ul class="attn">
-            <li>
-              <span class="dot red"></span>
-              <div><div class="t">3 products below minimum stock</div>
-              <div class="d">Cooking oil 5L, Sugar 25kg, Tea 100 pcs — reorder now</div></div>
-            </li>
-            <li>
-              <span class="dot red"></span>
-              <div><div class="t">2 customers over 30 days late — 38 mln UZS</div>
-              <div class="d">Buyuk Savdo and Silk Road Trading need collection calls</div></div>
-            </li>
-            <li>
-              <span class="dot amber"></span>
-              <div><div class="t">Marketing costs grew faster than sales</div>
-              <div class="d">Marketing +5.9% vs last month, sales growth slower</div></div>
-            </li>
-          </ul>
+          <p class="sub" id="attn-sub">Items to act on this week</p>
+          <ul class="attn" id="attn-list"></ul>
         </div>
       </div>
     </section>
@@ -287,10 +300,10 @@ tr.total td{font-weight:700;border-top:2px solid var(--line)}
       <!-- P&L -->
       <div class="card sub-pane" id="sub-pl">
         <h2>Profit and loss</h2>
-        <p class="sub">August vs September 2026 · mln UZS</p>
+        <p class="sub" id="pl-period">August vs September 2026 · mln UZS</p>
         <div class="tbl-wrap">
           <table id="tbl-pl">
-            <thead><tr><th>Line item</th><th>Aug 2026</th><th>Sep 2026</th><th>Change</th></tr></thead>
+            <thead><tr><th>Line item</th><th id="pl-h1">Aug 2026</th><th id="pl-h2">Sep 2026</th><th>Change</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
@@ -307,16 +320,18 @@ tr.total td{font-weight:700;border-top:2px solid var(--line)}
           </table>
         </div>
         <div class="legend" style="margin-top:18px">
-          <span><i style="background:var(--accent)"></i>Inflow</span>
-          <span><i style="background:var(--accent-2)"></i>Outflow</span>
+          <span><i style="background:var(--accent)"></i>Net positive</span>
+          <span><i style="background:var(--danger)"></i>Net negative</span>
+          <span><i style="background:var(--accent-2)"></i>Running balance</span>
         </div>
         <div id="chart-cash"></div>
+        <div id="chart-balance"></div>
       </div>
 
       <!-- Balance sheet -->
       <div class="card sub-pane" id="sub-bs" style="display:none">
         <h2>Balance sheet</h2>
-        <p class="sub">As at 30 Sep 2026 · mln UZS</p>
+        <p class="sub" id="bs-period">As at 30 Sep 2026 · mln UZS</p>
         <div class="grid two">
           <div>
             <div class="tbl-wrap">
@@ -353,7 +368,7 @@ tr.total td{font-weight:700;border-top:2px solid var(--line)}
         </div>
         <div class="card">
           <h2>Sales by branch</h2>
-          <p class="sub">September 2026 · mln UZS</p>
+          <p class="sub" id="branch-period">September 2026 · mln UZS</p>
           <div id="chart-branches"></div>
         </div>
       </div>
@@ -361,7 +376,7 @@ tr.total td{font-weight:700;border-top:2px solid var(--line)}
       <div class="grid two mt">
         <div class="card">
           <h2>Top products</h2>
-          <p class="sub">September 2026 · revenue in mln UZS</p>
+          <p class="sub" id="prod-period">September 2026 · revenue in mln UZS</p>
           <div class="tbl-wrap">
             <table id="tbl-products">
               <thead><tr><th>Product</th><th>Units sold</th><th>Revenue</th></tr></thead>
@@ -371,7 +386,7 @@ tr.total td{font-weight:700;border-top:2px solid var(--line)}
         </div>
         <div class="card">
           <h2>Top customers</h2>
-          <p class="sub">September 2026 · revenue in mln UZS</p>
+          <p class="sub" id="cust-period">September 2026 · revenue in mln UZS</p>
           <div class="tbl-wrap">
             <table id="tbl-customers">
               <thead><tr><th>Customer</th><th>Revenue</th><th>Payment</th></tr></thead>
@@ -386,7 +401,7 @@ tr.total td{font-weight:700;border-top:2px solid var(--line)}
     <section class="section" id="sec-stock">
       <div class="sec-head">
         <h1>Stock</h1>
-        <p>As at 30 Sep 2026 · stock value in million UZS</p>
+        <p id="stock-period">As at 30 Sep 2026 · stock value in million UZS</p>
       </div>
 
       <div class="grid kpis" style="grid-template-columns:repeat(3,1fr)" id="stock-kpis"></div>
@@ -418,7 +433,7 @@ tr.total td{font-weight:700;border-top:2px solid var(--line)}
         </div>
         <div class="card">
           <h2>Margin by category</h2>
-          <p class="sub">September 2026 · gross margin %</p>
+          <p class="sub" id="cat-period">September 2026 · gross margin %</p>
           <div id="chart-margin-cat"></div>
         </div>
       </div>
@@ -426,17 +441,13 @@ tr.total td{font-weight:700;border-top:2px solid var(--line)}
       <div class="grid two mt">
         <div class="card">
           <h2>Receivables by age</h2>
-          <p class="sub">As at 30 Sep 2026 · mln UZS</p>
+          <p class="sub" id="aging-period">As at 30 Sep 2026 · mln UZS</p>
           <div id="chart-aging"></div>
         </div>
         <div class="card">
           <h2>Findings</h2>
-          <p class="sub">What the numbers are telling us</p>
-          <ul class="findings">
-            <li>Gross margin improved to 38.0% in September, helped by strong sales of tea and coffee.</li>
-            <li>38 mln UZS of receivables are more than 30 days late — start collection calls this week.</li>
-            <li>Sugar margin fell to 22% because supplier prices rose faster than shelf prices.</li>
-          </ul>
+          <p class="sub" id="find-sub">What the numbers are telling us</p>
+          <ul class="findings" id="find-list"></ul>
         </div>
       </div>
     </section>
@@ -449,90 +460,103 @@ tr.total td{font-weight:700;border-top:2px solid var(--line)}
 
 /* ================= data ================= */
 const MONTHS = ["Apr","May","Jun","Jul","Aug","Sep"];
+const KEYS = ["Jul","Aug","Sep"]; /* selectable months, chronological */
 
 const DATA = {
-  revenue:   [412, 448, 431, 497, 520, 563],
-  netProfit: [ 41,  47,  38,  58,  61,  70],
-  grossMargin:[36.2, 37.4, 35.5, 37.6, 38.1, 38.0],
-  inflow:    [405, 440, 428, 480, 505, 540],
-  outflow:   [390, 431, 419, 452, 498, 512],
-  opening: 120,
+  series: { /* shared monthly series, Apr–Sep */
+    revenue:    [412, 448, 431, 497, 520, 563],
+    netProfit:  [ 41,  47,  38,  58,  61,  70],
+    grossMargin:[36.2, 37.4, 35.5, 37.6, 38.1, 38.0],
+    inflow:     [405, 440, 428, 480, 505, 540],
+    outflow:    [390, 431, 419, 452, 498, 512],
+    opening: 120
+  },
 
-  kpis: [
-    { label:"Revenue",        value:563, prev:520, prevLabel:"Aug", good:"up"   },
-    { label:"Net profit",     value: 70, prev: 61, prevLabel:"Aug", good:"up"   },
-    { label:"Cash balance",   value:216, prev:188, prevLabel:"Aug", good:"up"   },
-    { label:"Stock value",    value:267, prev:254, prevLabel:"Aug", good:"up"   },
-    { label:"Receivables",    value:142, prev:137, prevLabel:"Aug", good:"down" }
-  ],
+  Jul: {
+    month:"July", short:"Jul", label:"July 2026", asAt:"31 Jul 2026",
+    kpis:{ revenue:497, netProfit:58, cash:176, stock:241, receivables:133 },
+    pl:{ revenue:497, cogs:310, salaries:72, rent:22, marketing:16, other:13, tax:6 },
+    bs:{ cash:176, receivables:133, inventory:241, fixed:310, payables:148, loans:220, equity:492 },
+    branches:[ {name:"Tashkent",value:236},{name:"Samarkand",value:95},{name:"Fergana",value:80},{name:"Bukhara",value:50},{name:"Namangan",value:36} ],
+    products:[ {name:"Cooking oil 5L",units:"11,150",revenue:86},{name:"Flour 50kg",units:"8,050",revenue:75},{name:"Sugar 25kg",units:"5,500",revenue:55},{name:"Rice 10kg",units:"4,750",revenue:49},{name:"Tea 100 pcs",units:"1,640",revenue:38} ],
+    customers:[ {name:"Buyuk Savdo",revenue:57,payment:"Current"},{name:"Mega Market",revenue:46,payment:"Current"},{name:"Silk Road Trading",revenue:42,payment:"16–30 days"},{name:"Navoi Agro",revenue:30,payment:"Current"},{name:"Tashkent Retail",revenue:24,payment:"Current"} ],
+    stock:{ value:241, items:398, rows:[
+      {name:"Cooking oil 5L",inStock:455,min:500,cover:7},
+      {name:"Flour 50kg",inStock:2980,min:2000,cover:22},
+      {name:"Sugar 25kg",inStock:390,min:400,cover:8},
+      {name:"Rice 10kg",inStock:880,min:700,cover:16},
+      {name:"Tea 100 pcs",inStock:205,min:200,cover:9},
+      {name:"Lentils 20kg",inStock:570,min:400,cover:19},
+      {name:"Sunflower oil 1L",inStock:2260,min:1500,cover:14}] },
+    marginByCat:[ {name:"Tea and coffee",value:44},{name:"Grocery staples",value:33},{name:"Oil and fats",value:30},{name:"Sugar",value:24} ],
+    aging:[ {name:"0–15 days",value:67,cls:"bar-1"},{name:"16–30 days",value:31,cls:"bar-2"},{name:"31–60 days",value:24,cls:"bar-3"},{name:"60+ days",value:11,cls:"bar-4"} ],
+    attention:null, findings:null
+  },
 
-  pl: [
-    { name:"Revenue",           aug:520, sep:563, kind:""      },
-    { name:"Cost of goods sold",aug:322, sep:349, kind:""      },
-    { name:"Gross profit",      aug:198, sep:214, kind:"sub"   },
-    { name:"Salaries",          aug: 74, sep: 78, kind:""      },
-    { name:"Rent",              aug: 22, sep: 22, kind:""      },
-    { name:"Marketing",         aug: 17, sep: 18, kind:""      },
-    { name:"Other",             aug: 16, sep: 16, kind:""      },
-    { name:"Operating profit",  aug: 69, sep: 80, kind:"sub"   },
-    { name:"Tax",               aug:  8, sep: 10, kind:""      },
-    { name:"Net profit",        aug: 61, sep: 70, kind:"sub"   }
-  ],
+  Aug: {
+    month:"August", short:"Aug", label:"August 2026", asAt:"31 Aug 2026",
+    kpis:{ revenue:520, netProfit:61, cash:188, stock:254, receivables:137 },
+    pl:{ revenue:520, cogs:322, salaries:74, rent:22, marketing:17, other:16, tax:8 },
+    bs:{ cash:188, receivables:137, inventory:254, fixed:310, payables:152, loans:220, equity:517 },
+    branches:[ {name:"Tashkent",value:247},{name:"Samarkand",value:100},{name:"Fergana",value:84},{name:"Bukhara",value:52},{name:"Namangan",value:37} ],
+    products:[ {name:"Cooking oil 5L",units:"11,600",revenue:89},{name:"Flour 50kg",units:"8,450",revenue:78},{name:"Sugar 25kg",units:"5,750",revenue:57},{name:"Rice 10kg",units:"4,950",revenue:51},{name:"Tea 100 pcs",units:"1,740",revenue:40} ],
+    customers:[ {name:"Buyuk Savdo",revenue:61,payment:"Current"},{name:"Mega Market",revenue:49,payment:"Current"},{name:"Silk Road Trading",revenue:44,payment:"16–30 days"},{name:"Navoi Agro",revenue:31,payment:"Current"},{name:"Tashkent Retail",revenue:26,payment:"Current"} ],
+    stock:{ value:254, items:405, rows:[
+      {name:"Cooking oil 5L",inStock:480,min:500,cover:7},
+      {name:"Flour 50kg",inStock:3050,min:2000,cover:23},
+      {name:"Sugar 25kg",inStock:455,min:400,cover:9},
+      {name:"Rice 10kg",inStock:910,min:700,cover:17},
+      {name:"Tea 100 pcs",inStock:214,min:200,cover:9},
+      {name:"Lentils 20kg",inStock:595,min:400,cover:20},
+      {name:"Sunflower oil 1L",inStock:2320,min:1500,cover:14}] },
+    marginByCat:[ {name:"Tea and coffee",value:45},{name:"Grocery staples",value:34},{name:"Oil and fats",value:30},{name:"Sugar",value:23} ],
+    aging:[ {name:"0–15 days",value:69,cls:"bar-1"},{name:"16–30 days",value:32,cls:"bar-2"},{name:"31–60 days",value:25,cls:"bar-3"},{name:"60+ days",value:11,cls:"bar-4"} ],
+    attention:null, findings:null
+  },
 
-  branches: [
-    { name:"Tashkent",  value:271 },
-    { name:"Samarkand", value:108 },
-    { name:"Fergana",   value: 92 },
-    { name:"Bukhara",   value: 54 },
-    { name:"Namangan",  value: 38 }
-  ],
-
-  products: [
-    { name:"Cooking oil 5L",  units:"12,400", revenue:96 },
-    { name:"Flour 50kg",      units:"8,900",  revenue:84 },
-    { name:"Sugar 25kg",      units:"6,100",  revenue:61 },
-    { name:"Rice 10kg",       units:"5,200",  revenue:55 },
-    { name:"Tea 100 pcs",     units:"1,850",  revenue:43 }
-  ],
-
-  customers: [
-    { name:"Buyuk Savdo",      revenue:64, payment:"30+ days late" },
-    { name:"Mega Market",      revenue:52, payment:"Current"       },
-    { name:"Silk Road Trading",revenue:41, payment:"30+ days late" },
-    { name:"Navoi Agro",       revenue:33, payment:"Current"       },
-    { name:"Tashkent Retail",  revenue:28, payment:"16–30 days"    }
-  ],
-
-  stockKpis: [
-    { label:"Stock value",        value:267, unit:"mln UZS" },
-    { label:"Items in catalogue", value:412, unit:"items"   },
-    { label:"Below minimum",      value:  3, unit:"products"}
-  ],
-
-  stock: [
-    { name:"Cooking oil 5L",  inStock: 420,  min: 500,  cover: 6  },
-    { name:"Flour 50kg",      inStock:3100,  min:2000,  cover:24  },
-    { name:"Sugar 25kg",      inStock: 310,  min: 400,  cover: 5  },
-    { name:"Rice 10kg",       inStock: 940,  min: 700,  cover:18  },
-    { name:"Tea 100 pcs",     inStock: 150,  min: 200,  cover: 7  },
-    { name:"Lentils 20kg",    inStock: 610,  min: 400,  cover:21  },
-    { name:"Sunflower oil 1L",inStock:2400,  min:1500,  cover:15  }
-  ],
-
-  marginByCat: [
-    { name:"Tea and coffee",    value:46 },
-    { name:"Grocery staples",   value:34 },
-    { name:"Oil and fats",      value:29 },
-    { name:"Sugar",             value:22 }
-  ],
-
-  aging: [
-    { name:"0–15 days",  value:71, cls:"bar-1" },
-    { name:"16–30 days", value:33, cls:"bar-2" },
-    { name:"31–60 days", value:26, cls:"bar-3" },
-    { name:"60+ days",   value:12, cls:"bar-4" }
-  ]
+  Sep: {
+    month:"September", short:"Sep", label:"September 2026", asAt:"30 Sep 2026",
+    kpis:{ revenue:563, netProfit:70, cash:216, stock:267, receivables:142 },
+    pl:{ revenue:563, cogs:349, salaries:78, rent:22, marketing:18, other:16, tax:10 },
+    bs:{ cash:216, receivables:142, inventory:267, fixed:310, payables:156, loans:220, equity:559 },
+    branches:[ {name:"Tashkent",value:271},{name:"Samarkand",value:108},{name:"Fergana",value:92},{name:"Bukhara",value:54},{name:"Namangan",value:38} ],
+    products:[ {name:"Cooking oil 5L",units:"12,400",revenue:96},{name:"Flour 50kg",units:"8,900",revenue:84},{name:"Sugar 25kg",units:"6,100",revenue:61},{name:"Rice 10kg",units:"5,200",revenue:55},{name:"Tea 100 pcs",units:"1,850",revenue:43} ],
+    customers:[ {name:"Buyuk Savdo",revenue:64,payment:"30+ days late"},{name:"Mega Market",revenue:52,payment:"Current"},{name:"Silk Road Trading",revenue:41,payment:"30+ days late"},{name:"Navoi Agro",revenue:33,payment:"Current"},{name:"Tashkent Retail",revenue:28,payment:"16–30 days"} ],
+    stock:{ value:267, items:412, rows:[
+      {name:"Cooking oil 5L",inStock:420,min:500,cover:6},
+      {name:"Flour 50kg",inStock:3100,min:2000,cover:24},
+      {name:"Sugar 25kg",inStock:310,min:400,cover:5},
+      {name:"Rice 10kg",inStock:940,min:700,cover:18},
+      {name:"Tea 100 pcs",inStock:150,min:200,cover:7},
+      {name:"Lentils 20kg",inStock:610,min:400,cover:21},
+      {name:"Sunflower oil 1L",inStock:2400,min:1500,cover:15}] },
+    marginByCat:[ {name:"Tea and coffee",value:46},{name:"Grocery staples",value:34},{name:"Oil and fats",value:29},{name:"Sugar",value:22} ],
+    aging:[ {name:"0–15 days",value:71,cls:"bar-1"},{name:"16–30 days",value:33,cls:"bar-2"},{name:"31–60 days",value:26,cls:"bar-3"},{name:"60+ days",value:12,cls:"bar-4"} ],
+    attention:[
+      { dot:"red",  t:"3 products below minimum stock", d:"Cooking oil 5L, Sugar 25kg, Tea 100 pcs — reorder now" },
+      { dot:"red",  t:"2 customers over 30 days late — 38 mln UZS", d:"Buyuk Savdo and Silk Road Trading need collection calls" },
+      { dot:"amber",t:"Marketing costs grew faster than sales", d:"Marketing +5.9% vs last month, sales growth slower" }
+    ],
+    findings:[
+      "Gross margin improved to 38.0% in September, helped by strong sales of tea and coffee.",
+      "38 mln UZS of receivables are more than 30 days late — start collection calls this week.",
+      "Sugar margin fell to 22% because supplier prices rose faster than shelf prices."
+    ]
+  }
 };
+
+const KPI_DEFS = [
+  { key:"revenue",    label:"Revenue",      good:"up"   },
+  { key:"netProfit",  label:"Net profit",   good:"up"   },
+  { key:"cash",       label:"Cash balance", good:"up"   },
+  { key:"stock",      label:"Stock value",  good:"up"   },
+  { key:"receivables",label:"Receivables",  good:"down" }
+];
+
+let current = "Sep"; /* selected reporting month */
+
+function prevOf(k){ const i = KEYS.indexOf(k); return i > 0 ? KEYS[i-1] : null; }
+function selIdx(){ return MONTHS.indexOf(DATA[current].short); }
 
 /* ================= helpers ================= */
 const fmt = v => Number(v).toLocaleString("en-US", { maximumFractionDigits: 1 });
@@ -542,232 +566,346 @@ function niceMax(v){
   if (v <= 0) return 1;
   const p = Math.pow(10, Math.floor(Math.log10(v)));
   const n = v / p;
-  const nice = n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10;
-  return nice * p;
+  for (const c of [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10])
+    if (n <= c + 1e-9) return c * p;
+  return 10 * p;
 }
 
-/* grouped vertical bar chart (inline SVG) */
-function groupedBarSVG(cats, series, unit){
-  const W = 820, H = 300, P = { t: 18, r: 14, b: 36, l: 54 };
-  const iw = W - P.l - P.r, ih = H - P.t - P.b;
-  const max = niceMax(Math.max(...series.flatMap(s => s.values)));
-  const y = v => P.t + ih - (v / max) * ih;
-  const gw = iw / cats.length;
-  const bw = Math.min(30, (gw * 0.6) / series.length);
+/* measured pixel width of a chart container (charts are drawn 1:1 px) */
+function cw(id, fallback){
+  const el = document.getElementById(id);
+  const w = el ? Math.round(el.clientWidth) : 0;
+  return w >= 240 ? w : (fallback || 640);
+}
+function tickLines(max, n){
+  const out = [];
+  for (let i = 0; i <= n; i++) out.push(max * i / n);
+  return out;
+}
+const dim = (i, sel) => i === sel ? "" : " dimmed";
+
+/* combo: bars on left scale + line on right scale, selected month highlighted */
+function comboSVG(cats, bars, line, sel, w, H){
+  const P = { t: 26, r: 58, b: 38, l: 54 };
+  const iw = w - P.l - P.r, ih = H - P.t - P.b;
+  const maxL = niceMax(Math.max(...bars)), maxR = niceMax(Math.max(...line));
+  const yL = v => P.t + ih - (v / maxL) * ih;
+  const yR = v => P.t + ih - (v / maxR) * ih;
+  const gw = iw / cats.length, bw = Math.min(40, gw * 0.5);
   let g = "";
-  for (let i = 0; i <= 4; i++){
-    const v = max * i / 4, yy = y(v);
-    g += `<line class="grid" x1="${P.l}" x2="${W - P.r}" y1="${yy}" y2="${yy}"/>`
-       + `<text class="tick" x="${P.l - 8}" y="${yy + 4}" text-anchor="end">${fmt(v)}</text>`;
-  }
-  cats.forEach((c, i) => {
-    const cx = P.l + gw * i + gw / 2;
-    const total = series.length * bw + (series.length - 1) * 6;
-    series.forEach((s, j) => {
-      const x = cx - total / 2 + j * (bw + 6);
-      const yy = y(s.values[i]);
-      const h = Math.max(P.t + ih - yy, 0);
-      g += `<rect class="${s.cls}" x="${x.toFixed(1)}" y="${yy.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="2">`
-         + `<title>${c} · ${s.name}: ${fmt(s.values[i])} ${unit}</title></rect>`;
-    });
-    g += `<text class="tick" x="${cx}" y="${H - 12}" text-anchor="middle">${c}</text>`;
+  tickLines(maxL, 4).forEach(v => {
+    const yy = yL(v);
+    g += `<line class="grid" x1="${P.l}" x2="${w - P.r}" y1="${yy}" y2="${yy}"/>`
+       + `<text class="tick" x="${P.l - 8}" y="${yy + 5}" text-anchor="end">${fmt(v)}</text>`;
   });
-  return `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img">${g}</svg>`;
+  tickLines(maxR, 4).forEach(v => {
+    g += `<text class="tick" x="${w - P.r + 9}" y="${yR(v) + 5}">${fmt(v)}</text>`;
+  });
+  bars.forEach((v, i) => {
+    const cx = P.l + gw * i + gw / 2, yy = yL(v);
+    g += `<rect class="bar-a${dim(i, sel)}" x="${(cx - bw/2).toFixed(1)}" y="${yy.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(P.t + ih - yy, 0).toFixed(1)}" rx="3"><title>${cats[i]} · Revenue: ${fmt(v)}</title></rect>`;
+  });
+  const pts = line.map((v, i) => `${(P.l + gw*i + gw/2).toFixed(1)},${yR(v).toFixed(1)}`);
+  g += `<polyline class="line-b" points="${pts.join(" ")}"/>`;
+  line.forEach((v, i) => {
+    const cx = P.l + gw*i + gw/2;
+    g += `<circle class="pt-b${i === sel ? " pt-sel" : ""}" cx="${cx.toFixed(1)}" cy="${yR(v).toFixed(1)}" r="${i === sel ? 6 : 4.5}"><title>${cats[i]} · Net profit: ${fmt(v)}</title></circle>`;
+    g += `<text class="tick" x="${cx.toFixed(1)}" y="${H - 12}" text-anchor="middle"${i === sel ? ' fill="var(--text)" font-weight="600"' : ""}>${cats[i]}</text>`;
+  });
+  const n = line.length - 1, lx = P.l + gw*n + gw/2;
+  g += `<text class="vlabel halo" x="${lx.toFixed(1)}" y="${(yR(line[n]) - 13).toFixed(1)}" text-anchor="middle">${fmt(line[n])}</text>`;
+  g += `<text class="vlabel halo" x="${(lx - bw/2 - 4).toFixed(1)}" y="${(yL(bars[n]) - 9).toFixed(1)}" text-anchor="end">${fmt(bars[n])}</text>`;
+  g += `<line class="axis" x1="${P.l}" x2="${w - P.r}" y1="${P.t + ih}" y2="${P.t + ih}"/>`;
+  return `<svg viewBox="0 0 ${w} ${H}" width="${w}" class="chart" role="img">${g}</svg>`;
 }
 
-/* single-series vertical bar chart */
-function barSVG(cats, values, unit, cls){
-  return groupedBarSVG(cats, [{ name: cats.length ? "Value" : "", values, cls: cls || "bar-a" }], unit);
+/* net cash flow bars, green positive / red negative, labels on every bar */
+function netCashSVG(cats, vals, sel, w, H){
+  const P = { t: 30, r: 16, b: 34, l: 52 };
+  const iw = w - P.l - P.r, ih = H - P.t - P.b;
+  const max = niceMax(Math.max(...vals, 0)), min = niceMax(Math.max(0, -Math.min(...vals)));
+  const lo = -min, hi = max || 1;
+  const y = v => P.t + ih - ((v - lo) / (hi - lo)) * ih;
+  const gw = iw / cats.length, bw = Math.min(44, gw * 0.55);
+  let g = "";
+  tickLines(hi, 3).forEach(v => {
+    if (v > hi) return;
+    const yy = y(v);
+    g += `<line class="grid" x1="${P.l}" x2="${w - P.r}" y1="${yy}" y2="${yy}"/>`
+       + `<text class="tick" x="${P.l - 8}" y="${yy + 5}" text-anchor="end">${fmt(v)}</text>`;
+  });
+  cats.forEach((c, i) => {
+    const v = vals[i], cx = P.l + gw*i + gw/2;
+    const y0 = y(0), y1 = y(v);
+    const top = Math.min(y0, y1), h = Math.abs(y1 - y0);
+    g += `<rect class="${v >= 0 ? "bar-a" : "bar-neg"}${dim(i, sel)}" x="${(cx - bw/2).toFixed(1)}" y="${top.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(h, 1).toFixed(1)}" rx="3"><title>${c}: ${v >= 0 ? "+" : ""}${fmt(v)}</title></rect>`;
+    g += `<text class="vlabel halo" x="${cx.toFixed(1)}" y="${(v >= 0 ? top - 8 : top + h + 17).toFixed(1)}" text-anchor="middle">${v >= 0 ? "+" : ""}${fmt(v)}</text>`;
+    g += `<text class="tick" x="${cx.toFixed(1)}" y="${H - 9}" text-anchor="middle"${i === sel ? ' fill="var(--text)" font-weight="600"' : ""}>${c}</text>`;
+  });
+  g += `<line class="axis" x1="${P.l}" x2="${w - P.r}" y1="${y(0)}" y2="${y(0)}"/>`;
+  return `<svg viewBox="0 0 ${w} ${H}" width="${w}" class="chart" role="img">${g}</svg>`;
 }
 
-/* horizontal bar chart */
-function hBarsSVG(items, unit){
-  const W = 820, rowH = 42, P = { l: 132, r: 66, t: 10, b: 10 };
+/* small running-balance line under the net chart */
+function balanceSVG(cats, vals, sel, w, H){
+  const P = { t: 24, r: 20, b: 12, l: 52 };
+  const iw = w - P.l - P.r, ih = H - P.t - P.b;
+  const vmin = Math.min(...vals), vmax = Math.max(...vals);
+  const pad = Math.max((vmax - vmin) * 0.3, 8);
+  const lo = vmin - pad, hi = vmax + pad;
+  const y = v => P.t + ih - ((v - lo) / (hi - lo)) * ih;
+  const x = i => P.l + (iw / (cats.length - 1)) * i;
+  let g = `<line class="grid" x1="${P.l}" x2="${w - P.r}" y1="${P.t + ih}" y2="${P.t + ih}"/>`;
+  const pts = vals.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`);
+  g += `<polyline class="line-b" points="${pts.join(" ")}"/>`;
+  vals.forEach((v, i) => {
+    g += `<circle class="pt-b${i === sel ? " pt-sel" : ""}" cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="${i === sel ? 5.5 : 4}"><title>${cats[i]} · Balance: ${fmt(v)}</title></circle>`;
+  });
+  const n = vals.length - 1;
+  g += `<text class="vlabel halo" x="${x(n).toFixed(1)}" y="${(y(vals[n]) - 11).toFixed(1)}" text-anchor="end">${fmt(vals[n])}</text>`;
+  if (sel >= 0 && sel < n)
+    g += `<text class="vlabel halo" x="${x(sel).toFixed(1)}" y="${(y(vals[sel]) - 11).toFixed(1)}" text-anchor="middle">${fmt(vals[sel])}</text>`;
+  return `<svg viewBox="0 0 ${w} ${H}" width="${w}" class="chart" role="img">${g}</svg>`;
+}
+
+/* single-series bars with value labels, selected month highlighted */
+function barsSVG(cats, vals, sel, w, H, cls){
+  const P = { t: 32, r: 16, b: 34, l: 52 };
+  const iw = w - P.l - P.r, ih = H - P.t - P.b;
+  const max = niceMax(Math.max(...vals));
+  const y = v => P.t + ih - (v / max) * ih;
+  const gw = iw / cats.length, bw = Math.min(48, gw * 0.55);
+  let g = "";
+  tickLines(max, 4).forEach(v => {
+    const yy = y(v);
+    g += `<line class="grid" x1="${P.l}" x2="${w - P.r}" y1="${yy}" y2="${yy}"/>`
+       + `<text class="tick" x="${P.l - 8}" y="${yy + 5}" text-anchor="end">${fmt(v)}</text>`;
+  });
+  cats.forEach((c, i) => {
+    const cx = P.l + gw*i + gw/2, yy = y(vals[i]);
+    g += `<rect class="${cls || "bar-a"}${dim(i, sel)}" x="${(cx - bw/2).toFixed(1)}" y="${yy.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(P.t + ih - yy, 0).toFixed(1)}" rx="3"><title>${c}: ${fmt(vals[i])}</title></rect>`;
+    g += `<text class="vlabel halo" x="${cx.toFixed(1)}" y="${(yy - 8).toFixed(1)}" text-anchor="middle">${fmt(vals[i])}</text>`;
+    g += `<text class="tick" x="${cx.toFixed(1)}" y="${H - 9}" text-anchor="middle"${i === sel ? ' fill="var(--text)" font-weight="600"' : ""}>${c}</text>`;
+  });
+  g += `<line class="axis" x1="${P.l}" x2="${w - P.r}" y1="${P.t + ih}" y2="${P.t + ih}"/>`;
+  return `<svg viewBox="0 0 ${w} ${H}" width="${w}" class="chart" role="img">${g}</svg>`;
+}
+
+/* horizontal bars: dynamic label column, bars use the full remaining width */
+function hBarsSVG(items, unit, w){
+  const maxLen = Math.max(...items.map(d => d.name.length));
+  const P = { l: Math.min(Math.max(maxLen * 7.2 + 16, 92), Math.round(w * 0.42)), r: 54, t: 8, b: 8 };
+  const rowH = 44;
   const H = items.length * rowH + P.t + P.b;
   const max = niceMax(Math.max(...items.map(d => d.value)));
-  const iw = W - P.l - P.r;
-  let g = "";
-  g += `<line class="axis" x1="${P.l}" x2="${P.l}" y1="${P.t}" y2="${H - P.b}"/>`;
+  const iw = w - P.l - P.r;
+  let g = `<line class="axis" x1="${P.l}" x2="${P.l}" y1="${P.t}" y2="${H - P.b}"/>`;
   items.forEach((d, i) => {
     const cy = P.t + i * rowH + rowH / 2;
-    const w = (d.value / max) * iw;
-    const h = 22;
-    g += `<text class="tick" x="${P.l - 10}" y="${cy + 4}" text-anchor="end">${d.name}</text>`
-       + `<rect class="${d.cls || "bar-a"}" x="${P.l + 1}" y="${cy - h / 2}" width="${Math.max(w, 1).toFixed(1)}" height="${h}" rx="3">`
-       + `<title>${d.name}: ${fmt(d.value)} ${unit}</title></rect>`
-       + `<text class="vlabel" x="${P.l + w + 8}" y="${cy + 4}">${fmt(d.value)}</text>`;
+    const bw = (d.value / max) * iw;
+    g += `<text class="tick" x="${P.l - 10}" y="${cy + 5}" text-anchor="end">${d.name}</text>`
+       + `<rect class="${d.cls || "bar-a"}" x="${P.l + 1}" y="${cy - 12}" width="${Math.max(bw, 2).toFixed(1)}" height="24" rx="3"><title>${d.name}: ${fmt(d.value)} ${unit}</title></rect>`
+       + `<text class="vlabel" x="${(P.l + bw + 8).toFixed(1)}" y="${cy + 5}">${fmt(d.value)}</text>`;
   });
-  return `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img">${g}</svg>`;
+  return `<svg viewBox="0 0 ${w} ${H}" width="${w}" class="chart" role="img">${g}</svg>`;
 }
 
-/* line chart with value labels */
-function lineSVG(cats, values, unit){
-  const W = 820, H = 300, P = { t: 22, r: 20, b: 36, l: 50 };
-  const iw = W - P.l - P.r, ih = H - P.t - P.b;
+/* line chart with value labels; first label never crosses the y-axis */
+function lineSVG(cats, values, sel, w, H, unit){
+  const P = { t: 30, r: 26, b: 36, l: 54 };
+  const iw = w - P.l - P.r, ih = H - P.t - P.b;
   const lo = Math.floor(Math.min(...values) - 2);
   const hi = Math.ceil(Math.max(...values) + 1.5);
   const y = v => P.t + ih - ((v - lo) / (hi - lo)) * ih;
-  const x = i => P.l + (iw / (cats.length - 1)) * i;
+  const x = i => P.l + 10 + ((iw - 10) / (cats.length - 1)) * i;
   let g = "";
   for (let i = 0; i <= 4; i++){
     const v = lo + (hi - lo) * i / 4, yy = y(v);
-    g += `<line class="grid" x1="${P.l}" x2="${W - P.r}" y1="${yy}" y2="${yy}"/>`
-       + `<text class="tick" x="${P.l - 8}" y="${yy + 4}" text-anchor="end">${v.toFixed(0)}%</text>`;
+    g += `<line class="grid" x1="${P.l}" x2="${w - P.r}" y1="${yy}" y2="${yy}"/>`
+       + `<text class="tick" x="${P.l - 8}" y="${yy + 5}" text-anchor="end">${v.toFixed(0)}%</text>`;
   }
-  const pts = values.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
-  g += `<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  const pts = values.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`);
+  g += `<polyline class="line-a" points="${pts.join(" ")}"/>`;
   values.forEach((v, i) => {
-    g += `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="4.5" fill="var(--card)" stroke="var(--accent)" stroke-width="2.5"><title>${cats[i]}: ${v.toFixed(1)}${unit}</title></circle>`
-       + `<text class="vlabel" x="${x(i).toFixed(1)}" y="${(y(v) - 12).toFixed(1)}" text-anchor="middle">${v.toFixed(1)}</text>`
-       + `<text class="tick" x="${x(i).toFixed(1)}" y="${H - 12}" text-anchor="middle">${cats[i]}</text>`;
+    g += `<circle class="pt-a${i === sel ? " pt-sel" : ""}" cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="${i === sel ? 6 : 4.5}"><title>${cats[i]}: ${v.toFixed(1)}${unit}</title></circle>`;
+    const first = i === 0, last = i === values.length - 1;
+    g += `<text class="vlabel halo" x="${(x(i) + (first ? -6 : last ? 6 : 0)).toFixed(1)}" y="${(y(v) - 13).toFixed(1)}" text-anchor="${first ? "start" : last ? "end" : "middle"}">${v.toFixed(1)}</text>`;
+    g += `<text class="tick" x="${x(i).toFixed(1)}" y="${H - 11}" text-anchor="middle"${i === sel ? ' fill="var(--text)" font-weight="600"' : ""}>${cats[i]}</text>`;
   });
-  return `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img">${g}</svg>`;
+  g += `<line class="axis" x1="${P.l}" x2="${w - P.r}" y1="${P.t + ih}" y2="${P.t + ih}"/>`;
+  return `<svg viewBox="0 0 ${w} ${H}" width="${w}" class="chart" role="img">${g}</svg>`;
 }
 
 /* ================= renderers ================= */
-function renderKPIs(){
-  const html = DATA.kpis.map(k => {
-    const p = pct(k.prev, k.value);
-    const rising = k.value >= k.prev;
+function renderAll(){
+  const m = DATA[current], pm = DATA[prevOf(current)];
+  const s = DATA.series, sel = selIdx();
+
+  /* ---- Overview ---- */
+  document.getElementById("ov-period").textContent = `${m.label} · all amounts in million UZS`;
+  document.getElementById("kpi-grid").innerHTML = KPI_DEFS.map(d => {
+    const v = m.kpis[d.key], pv = pm.kpis[d.key];
+    const p = pct(pv, v), rising = v >= pv;
     let cls = "flat", arrow = "→";
-    if (p !== 0){
-      const isGood = (k.good === "up" && rising) || (k.good === "down" && !rising);
+    if (Math.abs(p) > 0.05){
+      const isGood = (d.good === "up" && rising) || (d.good === "down" && !rising);
       cls = isGood ? "good" : "bad";
       arrow = rising ? "▲" : "▼";
     }
     return `<div class="card kpi">
-      <div class="label">${k.label}</div>
-      <div class="value">${fmt(k.value)}<span class="unit">mln UZS</span></div>
-      <span class="delta ${cls}">${arrow} ${Math.abs(p).toFixed(1)}% <span class="vs">vs ${k.prevLabel}</span></span>
+      <div class="label">${d.label}</div>
+      <div class="value">${fmt(v)}<span class="unit">mln UZS</span></div>
+      <span class="delta ${cls}">${arrow} ${Math.abs(p).toFixed(1)}% <span class="vs">vs ${pm.short}</span></span>
     </div>`;
   }).join("");
-  document.getElementById("kpi-grid").innerHTML = html;
-}
+  document.getElementById("chart-overview").innerHTML =
+    comboSVG(MONTHS, s.revenue, s.netProfit, sel, cw("chart-overview"), 300);
 
-function renderOverviewChart(){
-  document.getElementById("chart-overview").innerHTML = groupedBarSVG(
-    MONTHS,
-    [
-      { name:"Revenue",   values: DATA.revenue,   cls:"bar-a" },
-      { name:"Net profit",values: DATA.netProfit, cls:"bar-b" }
-    ],
-    "mln UZS"
-  );
-}
+  const attn = document.getElementById("attn-list");
+  const attnSub = document.getElementById("attn-sub");
+  if (m.attention){
+    attnSub.textContent = "Items to act on this week";
+    attn.innerHTML = m.attention.map(a =>
+      `<li><span class="dot ${a.dot}"></span><div><div class="t">${a.t}</div><div class="d">${a.d}</div></div></li>`).join("");
+  } else {
+    attnSub.textContent = "Highlights for " + m.label;
+    attn.innerHTML = `<li><span class="dot green"></span><div><div class="t">No highlights for this month</div></div></li>`;
+  }
 
-function renderPL(){
-  const rows = DATA.pl.map(r => {
-    const p = pct(r.aug, r.sep);
-    const chg = Math.abs(p) < 0.05
-      ? `<span class="dim">0.0%</span>`
-      : `<span class="${p > 0 ? (r.kind === "" && (r.name === "Cost of goods sold" || r.name === "Salaries" || r.name === "Rent" || r.name === "Marketing" || r.name === "Other" || r.name === "Tax") ? "neg" : "pos") : "pos"}">${p > 0 ? "+" : ""}${p.toFixed(1)}%</span>`;
-    return `<tr class="${r.kind}">
-      <td>${r.name}</td><td>${fmt(r.aug)}</td><td>${fmt(r.sep)}</td><td>${chg}</td>
-    </tr>`;
+  /* ---- Finance > P&L ---- */
+  document.getElementById("pl-period").textContent = `${pm.month} vs ${m.month} 2026 · mln UZS`;
+  document.getElementById("pl-h1").textContent = `${pm.short} 2026`;
+  document.getElementById("pl-h2").textContent = `${m.short} 2026`;
+  const plRows = [
+    { name:"Revenue",            a:pm.pl.revenue,  b:m.pl.revenue,  cost:false, kind:""    },
+    { name:"Cost of goods sold", a:pm.pl.cogs,     b:m.pl.cogs,     cost:true,  kind:""    },
+    { name:"Gross profit",       a:pm.pl.revenue - pm.pl.cogs, b:m.pl.revenue - m.pl.cogs, cost:false, kind:"sub" },
+    { name:"Salaries",           a:pm.pl.salaries, b:m.pl.salaries, cost:true,  kind:""    },
+    { name:"Rent",               a:pm.pl.rent,     b:m.pl.rent,     cost:true,  kind:""    },
+    { name:"Marketing",          a:pm.pl.marketing,b:m.pl.marketing,cost:true,  kind:""    },
+    { name:"Other",              a:pm.pl.other,    b:m.pl.other,    cost:true,  kind:""    },
+    { name:"Operating profit",   a:pm.pl.revenue - pm.pl.cogs - pm.pl.salaries - pm.pl.rent - pm.pl.marketing - pm.pl.other,
+                                 b:m.pl.revenue - m.pl.cogs - m.pl.salaries - m.pl.rent - m.pl.marketing - m.pl.other, cost:false, kind:"sub" },
+    { name:"Tax",                a:pm.pl.tax,      b:m.pl.tax,      cost:true,  kind:""    },
+    { name:"Net profit",         a:pm.pl.revenue - pm.pl.cogs - pm.pl.salaries - pm.pl.rent - pm.pl.marketing - pm.pl.other - pm.pl.tax,
+                                 b:m.pl.revenue - m.pl.cogs - m.pl.salaries - m.pl.rent - m.pl.marketing - m.pl.other - m.pl.tax, cost:false, kind:"sub" }
+  ];
+  document.querySelector("#tbl-pl tbody").innerHTML = plRows.map(r => {
+    const p = r.a ? pct(r.a, r.b) : 0;
+    let chg = `<span class="dim">0.0%</span>`;
+    if (Math.abs(p) >= 0.05){
+      const upIsBad = r.cost;
+      const good = p > 0 ? !upIsBad : upIsBad;
+      chg = `<span class="${good ? "pos" : "neg"}">${p > 0 ? "+" : ""}${p.toFixed(1)}%</span>`;
+    }
+    return `<tr class="${r.kind}"><td>${r.name}</td><td>${fmt(r.a)}</td><td>${fmt(r.b)}</td><td>${chg}</td></tr>`;
   }).join("");
-  document.querySelector("#tbl-pl tbody").innerHTML = rows;
-}
 
-function renderCash(){
-  let bal = DATA.opening;
-  const rows = DATA.inflow.map((inf, i) => {
-    const out = DATA.outflow[i], net = inf - out;
-    bal += net;
-    return `<tr>
+  /* ---- Finance > Cash flow ---- */
+  const nets = s.inflow.map((v, i) => v - s.outflow[i]);
+  let bal = s.opening;
+  const bals = nets.map(n => (bal += n));
+  document.querySelector("#tbl-cash tbody").innerHTML = s.inflow.map((inf, i) => {
+    const out = s.outflow[i], net = nets[i];
+    return `<tr${i === sel ? ' class="sub"' : ""}>
       <td>${MONTHS[i]}</td><td>${fmt(inf)}</td><td>${fmt(out)}</td>
       <td class="${net >= 0 ? "pos" : "neg"}">${net >= 0 ? "+" : ""}${fmt(net)}</td>
-      <td>${fmt(bal)}</td>
+      <td>${fmt(bals[i])}</td>
     </tr>`;
   }).join("");
-  document.querySelector("#tbl-cash tbody").innerHTML = rows;
+  document.getElementById("chart-cash").innerHTML = netCashSVG(MONTHS, nets, sel, cw("chart-cash"), 210);
+  document.getElementById("chart-balance").innerHTML = balanceSVG(MONTHS, bals, sel, cw("chart-balance"), 130);
 
-  document.getElementById("chart-cash").innerHTML = groupedBarSVG(
-    MONTHS,
-    [
-      { name:"Inflow",  values: DATA.inflow,  cls:"bar-a" },
-      { name:"Outflow", values: DATA.outflow, cls:"bar-b" }
-    ],
-    "mln UZS"
-  );
-}
-
-function renderBalanceSheet(){
+  /* ---- Finance > Balance sheet ---- */
+  document.getElementById("bs-period").textContent = `As at ${m.asAt} · mln UZS`;
+  const bs = m.bs;
   const assets = [
-    { name:"Cash",          v:216 }, { name:"Receivables", v:142 },
-    { name:"Inventory",     v:267 }, { name:"Fixed assets",v:310 }
+    { name:"Cash", v:bs.cash }, { name:"Receivables", v:bs.receivables },
+    { name:"Inventory", v:bs.inventory }, { name:"Fixed assets", v:bs.fixed }
   ];
-  const liab = [ { name:"Payables", v:156 }, { name:"Loans", v:220 } ];
-  const equity = [ { name:"Equity", v:559 } ];
-
-  const sum = a => a.reduce((s, d) => s + d.v, 0);
-  const assetsTotal = sum(assets), leTotal = sum(liab) + sum(equity);
-
+  const liab = [ { name:"Payables", v:bs.payables }, { name:"Loans", v:bs.loans } ];
+  const sum = arr => arr.reduce((t, d) => t + d.v, 0);
+  const assetsTotal = sum(assets), leTotal = sum(liab) + bs.equity;
   document.querySelector("#tbl-assets tbody").innerHTML =
     assets.map(d => `<tr><td>${d.name}</td><td>${fmt(d.v)}</td></tr>`).join("") +
     `<tr class="bs-total"><td>Total assets</td><td>${fmt(assetsTotal)}</td></tr>`;
-
   document.querySelector("#tbl-liab tbody").innerHTML =
     liab.map(d => `<tr><td>${d.name}</td><td>${fmt(d.v)}</td></tr>`).join("") +
     `<tr class="sub"><td>Total liabilities</td><td>${fmt(sum(liab))}</td></tr>` +
-    equity.map(d => `<tr><td>${d.name}</td><td>${fmt(d.v)}</td></tr>`).join("") +
+    `<tr><td>Equity</td><td>${fmt(bs.equity)}</td></tr>` +
     `<tr class="bs-total"><td>Total liabilities &amp; equity</td><td>${fmt(leTotal)}</td></tr>`;
-}
 
-function renderSales(){
+  /* ---- Sales ---- */
+  document.getElementById("branch-period").textContent = `${m.label} · mln UZS`;
+  document.getElementById("prod-period").textContent = `${m.label} · revenue in mln UZS`;
+  document.getElementById("cust-period").textContent = `${m.label} · revenue in mln UZS`;
   document.getElementById("chart-sales-month").innerHTML =
-    barSVG(MONTHS, DATA.revenue, "mln UZS", "bar-a");
-
+    barsSVG(MONTHS, s.revenue, sel, cw("chart-sales-month"), 280, "bar-a");
   document.getElementById("chart-branches").innerHTML =
-    hBarsSVG(DATA.branches.map((b, i) => ({ name:b.name, value:b.value, cls: i === 0 ? "bar-1" : "bar-soft" })), "mln UZS");
-
+    hBarsSVG(m.branches.map((b, i) => ({ name:b.name, value:b.value, cls: i === 0 ? "bar-1" : "bar-soft" })), "mln UZS", cw("chart-branches"));
   document.querySelector("#tbl-products tbody").innerHTML =
-    DATA.products.map(p =>
-      `<tr><td>${p.name}</td><td>${p.units}</td><td>${fmt(p.revenue)}</td></tr>`).join("");
-
+    m.products.map(p => `<tr><td>${p.name}</td><td>${p.units}</td><td>${fmt(p.revenue)}</td></tr>`).join("");
   document.querySelector("#tbl-customers tbody").innerHTML =
-    DATA.customers.map(c => {
-      const late = c.payment.includes("late");
-      const warn = c.payment.includes("16");
+    m.customers.map(c => {
+      const late = c.payment.includes("late"), warn = c.payment.includes("16");
       return `<tr><td>${c.name}</td><td>${fmt(c.revenue)}</td>
-        <td><span class="tag ${late ? "reorder" : warn ? "reorder" : "ok"}">${c.payment}</span></td></tr>`;
+        <td><span class="tag ${late || warn ? "reorder" : "ok"}">${c.payment}</span></td></tr>`;
     }).join("");
-}
 
-function renderStock(){
-  document.getElementById("stock-kpis").innerHTML = DATA.stockKpis.map(k =>
+  /* ---- Stock ---- */
+  document.getElementById("stock-period").textContent = `As at ${m.asAt} · stock value in million UZS`;
+  const below = m.stock.rows.filter(r => r.inStock < r.min).length;
+  const stockKpis = [
+    { label:"Stock value",        value:m.stock.value, unit:"mln UZS" },
+    { label:"Items in catalogue", value:m.stock.items, unit:"items"   },
+    { label:"Below minimum",      value:below,         unit:"products"}
+  ];
+  document.getElementById("stock-kpis").innerHTML = stockKpis.map(k =>
     `<div class="card kpi">
       <div class="label">${k.label}</div>
       <div class="value">${fmt(k.value)}<span class="unit">${k.unit}</span></div>
     </div>`).join("");
-
-  document.querySelector("#tbl-stock tbody").innerHTML = DATA.stock.map(s => {
-    const low = s.inStock < s.min;
+  document.querySelector("#tbl-stock tbody").innerHTML = m.stock.rows.map(r => {
+    const low = r.inStock < r.min;
     return `<tr>
-      <td>${s.name}</td><td>${fmt(s.inStock)}</td><td>${fmt(s.min)}</td><td>${s.cover}</td>
+      <td>${r.name}</td><td>${fmt(r.inStock)}</td><td>${fmt(r.min)}</td><td>${r.cover}</td>
       <td><span class="tag ${low ? "reorder" : "ok"}">${low ? "Reorder" : "OK"}</span></td>
     </tr>`;
   }).join("");
-}
 
-function renderAnalytics(){
+  /* ---- Analytics ---- */
+  document.getElementById("cat-period").textContent = `${m.label} · gross margin %`;
+  document.getElementById("aging-period").textContent = `As at ${m.asAt} · mln UZS`;
   document.getElementById("chart-margin-month").innerHTML =
-    lineSVG(MONTHS, DATA.grossMargin, "%");
-
+    lineSVG(MONTHS, s.grossMargin, sel, cw("chart-margin-month"), 290, "%");
   document.getElementById("chart-margin-cat").innerHTML =
-    hBarsSVG(DATA.marginByCat.map((d, i) => ({ name:d.name, value:d.value, cls:"bar-" + (i + 1) })), "%");
-
+    hBarsSVG(m.marginByCat.map((d, i) => ({ name:d.name, value:d.value, cls:"bar-" + (i + 1) })), "%", cw("chart-margin-cat"));
   document.getElementById("chart-aging").innerHTML =
-    hBarsSVG(DATA.aging, "mln UZS");
+    hBarsSVG(m.aging, "mln UZS", cw("chart-aging"));
+
+  const findSub = document.getElementById("find-sub");
+  const findList = document.getElementById("find-list");
+  if (m.findings){
+    findSub.textContent = "What the numbers are telling us";
+    findList.innerHTML = m.findings.map(f => `<li>${f}</li>`).join("");
+  } else {
+    findSub.textContent = "Highlights for " + m.label;
+    findList.innerHTML = `<li>No highlights for this month</li>`;
+  }
 }
 
-/* ================= navigation ================= */
+/* ================= navigation & events ================= */
+function showSection(id){
+  document.querySelectorAll(".section").forEach(s => s.classList.toggle("active", s.id === id));
+}
+
 document.getElementById("nav").addEventListener("click", e => {
   const btn = e.target.closest("button[data-tab]");
   if (!btn) return;
   document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("active", b === btn));
-  document.querySelectorAll(".section").forEach(s =>
-    s.classList.toggle("active", s.id === "sec-" + btn.dataset.tab));
+  showSection("sec-" + btn.dataset.tab);
   window.scrollTo(0, 0);
+  renderAll(); /* section just became visible — measure chart widths */
 });
 
 document.getElementById("fin-tabs").addEventListener("click", e => {
@@ -776,17 +914,30 @@ document.getElementById("fin-tabs").addEventListener("click", e => {
   document.querySelectorAll("#fin-tabs button").forEach(b => b.classList.toggle("active", b === btn));
   document.querySelectorAll(".sub-pane").forEach(p =>
     p.style.display = (p.id === "sub-" + btn.dataset.sub) ? "" : "none");
+  renderAll(); /* cash/balance panes were hidden — measure now */
+});
+
+document.getElementById("month-seg").addEventListener("click", e => {
+  const btn = e.target.closest("button[data-month]");
+  if (!btn || btn.dataset.month === current) return;
+  current = btn.dataset.month;
+  document.querySelectorAll("#month-seg button").forEach(b => {
+    const on = b.dataset.month === current;
+    b.classList.toggle("active", on);
+    b.setAttribute("aria-selected", on ? "true" : "false");
+  });
+  renderAll();
+});
+
+/* redraw charts at true pixel width when the window resizes */
+let resizeTimer = null;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(renderAll, 150);
 });
 
 /* ================= init ================= */
-renderKPIs();
-renderOverviewChart();
-renderPL();
-renderCash();
-renderBalanceSheet();
-renderSales();
-renderStock();
-renderAnalytics();
+renderAll();
 </script>
 </body>
 </html>
