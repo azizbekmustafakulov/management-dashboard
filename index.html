@@ -589,9 +589,11 @@ function comboSVG(cats, bars, line, sel, w, H){
     g += `<circle class="pt-b${i === sel ? " pt-sel" : ""}" cx="${cx.toFixed(1)}" cy="${yR(v).toFixed(1)}" r="${i === sel ? 6 : 4.5}"><title>${cats[i]} · Net profit: ${fmt(v)}</title></circle>`;
     g += `<text class="tick" x="${cx.toFixed(1)}" y="${H - 12}" text-anchor="middle"${i === sel ? ' fill="var(--text)" font-weight="600"' : ""}>${cats[i]}</text>`;
   });
-  const n = line.length - 1, lx = P.l + gw*n + gw/2;
-  g += `<text class="vlabel halo" x="${lx.toFixed(1)}" y="${(yR(line[n]) - 13).toFixed(1)}" text-anchor="middle">${fmt(line[n])}</text>`;
-  g += `<text class="vlabel halo" x="${(lx - bw/2 - 4).toFixed(1)}" y="${(yL(bars[n]) - 9).toFixed(1)}" text-anchor="end">${fmt(bars[n])}</text>`;
+  const n = line.length - 1, lx = P.l + gw*n + gw/2, ly = yR(line[n]);
+  // last-point label: above the marker when there is headroom, otherwise to its
+  // right so it never collides with the marker or the top gridline
+  const tight = ly - P.t < 45;
+  g += `<text class="vlabel halo" x="${(lx + (tight ? 11 : 0)).toFixed(1)}" y="${(ly - (tight ? 4 : 13)).toFixed(1)}" text-anchor="${tight ? "start" : "middle"}">${fmt(line[n])}</text>`;
   g += `<line class="axis" x1="${P.l}" x2="${w - P.r}" y1="${P.t + ih}" y2="${P.t + ih}"/>`;
   return `<svg viewBox="0 0 ${w} ${H}" width="${w}" class="chart" role="img">${g}</svg>`;
 }
