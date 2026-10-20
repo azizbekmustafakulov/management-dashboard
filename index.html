@@ -103,7 +103,6 @@ body{
 .grid>*{min-width:0}
 .kpis{grid-template-columns:repeat(5,1fr)}
 .two{grid-template-columns:1fr 1fr}
-.cols-3-2{grid-template-columns:5fr 4fr}
 .mt{margin-top:14px}
 /* ---------- KPI card ---------- */
 .kpi .label{font-size:12.5px;color:var(--muted)}
@@ -137,16 +136,6 @@ body{
 .pt-sel{stroke-width:3.5}
 .legend{display:flex;gap:16px;font-size:12.5px;color:var(--muted);margin:0 0 10px}
 .legend i{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:6px;vertical-align:-1px}
-/* ---------- lists ---------- */
-.attn{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
-.attn li{display:flex;gap:12px;padding:12px 2px;border-bottom:1px solid var(--line);align-items:flex-start}
-.attn li:last-child{border-bottom:none}
-.attn .dot{flex:0 0 8px;width:8px;height:8px;border-radius:50%;margin-top:6px}
-.dot.red{background:var(--danger)}
-.dot.amber{background:var(--accent-2)}
-.dot.green{background:var(--accent)}
-.attn .t{font-size:14px;font-weight:500}
-.attn .d{font-size:12.5px;color:var(--muted)}
 /* ---------- sub tabs ---------- */
 .subtabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
 .subtabs::-webkit-scrollbar{display:none}
@@ -206,7 +195,7 @@ tr.total td{font-weight:700;border-top:2px solid var(--line)}
   }
   .main{padding:16px 14px calc(90px + env(safe-area-inset-bottom))}
   .kpis{grid-template-columns:repeat(2,1fr)}
-  .two,.cols-3-2{grid-template-columns:1fr}
+  .two{grid-template-columns:1fr}
   .sec-head h1{font-size:19px}
   .topbar{width:100%;margin-bottom:14px}
   .seg{display:flex;width:100%}
@@ -266,21 +255,14 @@ tr.total td{font-weight:700;border-top:2px solid var(--line)}
 
       <div class="grid kpis" id="kpi-grid"></div>
 
-      <div class="grid cols-3-2 mt">
-        <div class="card">
-          <h2>Revenue and net profit</h2>
-          <p class="sub">Monthly, Apr–Sep 2026 · mln UZS</p>
-          <div class="legend">
-            <span><i style="background:var(--accent)"></i>Revenue</span>
-            <span><i style="background:var(--accent-2)"></i>Net profit (right axis)</span>
-          </div>
-          <div id="chart-overview"></div>
+      <div class="card mt">
+        <h2>Revenue and net profit</h2>
+        <p class="sub">Monthly, Apr–Sep 2026 · mln UZS</p>
+        <div class="legend">
+          <span><i style="background:var(--accent)"></i>Revenue</span>
+          <span><i style="background:var(--accent-2)"></i>Net profit (right axis)</span>
         </div>
-        <div class="card">
-          <h2>Needs attention</h2>
-          <p class="sub" id="attn-sub">Items to act on this week</p>
-          <ul class="attn" id="attn-list"></ul>
-        </div>
+        <div id="chart-overview"></div>
       </div>
     </section>
 
@@ -490,7 +472,7 @@ const DATA = {
       {name:"Sunflower oil 1L",inStock:2260,min:1500,cover:14}] },
     marginByCat:[ {name:"Tea and coffee",value:44},{name:"Grocery staples",value:33},{name:"Oil and fats",value:30},{name:"Sugar",value:24} ],
     aging:[ {name:"0–15 days",value:67,cls:"bar-1"},{name:"16–30 days",value:31,cls:"bar-2"},{name:"31–60 days",value:24,cls:"bar-3"},{name:"60+ days",value:11,cls:"bar-4"} ],
-    attention:null, findings:null
+    findings:null
   },
 
   Aug: {
@@ -511,7 +493,7 @@ const DATA = {
       {name:"Sunflower oil 1L",inStock:2320,min:1500,cover:14}] },
     marginByCat:[ {name:"Tea and coffee",value:45},{name:"Grocery staples",value:34},{name:"Oil and fats",value:30},{name:"Sugar",value:23} ],
     aging:[ {name:"0–15 days",value:69,cls:"bar-1"},{name:"16–30 days",value:32,cls:"bar-2"},{name:"31–60 days",value:25,cls:"bar-3"},{name:"60+ days",value:11,cls:"bar-4"} ],
-    attention:null, findings:null
+    findings:null
   },
 
   Sep: {
@@ -532,11 +514,6 @@ const DATA = {
       {name:"Sunflower oil 1L",inStock:2400,min:1500,cover:15}] },
     marginByCat:[ {name:"Tea and coffee",value:46},{name:"Grocery staples",value:34},{name:"Oil and fats",value:29},{name:"Sugar",value:22} ],
     aging:[ {name:"0–15 days",value:71,cls:"bar-1"},{name:"16–30 days",value:33,cls:"bar-2"},{name:"31–60 days",value:26,cls:"bar-3"},{name:"60+ days",value:12,cls:"bar-4"} ],
-    attention:[
-      { dot:"red",  t:"3 products below minimum stock", d:"Cooking oil 5L, Sugar 25kg, Tea 100 pcs — reorder now" },
-      { dot:"red",  t:"2 customers over 30 days late — 38 mln UZS", d:"Buyuk Savdo and Silk Road Trading need collection calls" },
-      { dot:"amber",t:"Marketing costs grew faster than sales", d:"Marketing +5.9% vs last month, sales growth slower" }
-    ],
     findings:[
       "Gross margin improved to 38.0% in September, helped by strong sales of tea and coffee.",
       "38 mln UZS of receivables are more than 30 days late — start collection calls this week.",
@@ -760,17 +737,6 @@ function renderAll(){
   }).join("");
   document.getElementById("chart-overview").innerHTML =
     comboSVG(MONTHS, s.revenue, s.netProfit, sel, cw("chart-overview"), 300);
-
-  const attn = document.getElementById("attn-list");
-  const attnSub = document.getElementById("attn-sub");
-  if (m.attention){
-    attnSub.textContent = "Items to act on this week";
-    attn.innerHTML = m.attention.map(a =>
-      `<li><span class="dot ${a.dot}"></span><div><div class="t">${a.t}</div><div class="d">${a.d}</div></div></li>`).join("");
-  } else {
-    attnSub.textContent = "Highlights for " + m.label;
-    attn.innerHTML = `<li><span class="dot green"></span><div><div class="t">No highlights for this month</div></div></li>`;
-  }
 
   /* ---- Finance > P&L ---- */
   document.getElementById("pl-period").textContent = `${pm.month} vs ${m.month} 2026 · mln UZS`;
