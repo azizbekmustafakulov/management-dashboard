@@ -589,11 +589,10 @@ function comboSVG(cats, bars, line, sel, w, H){
     g += `<circle class="pt-b${i === sel ? " pt-sel" : ""}" cx="${cx.toFixed(1)}" cy="${yR(v).toFixed(1)}" r="${i === sel ? 6 : 4.5}"><title>${cats[i]} · Net profit: ${fmt(v)}</title></circle>`;
     g += `<text class="tick" x="${cx.toFixed(1)}" y="${H - 12}" text-anchor="middle"${i === sel ? ' fill="var(--text)" font-weight="600"' : ""}>${cats[i]}</text>`;
   });
-  const n = line.length - 1, lx = P.l + gw*n + gw/2, ly = yR(line[n]);
-  // last-point label: above the marker when there is headroom, otherwise to its
-  // right so it never collides with the marker or the top gridline
-  const tight = ly - P.t < 45;
-  g += `<text class="vlabel halo" x="${(lx + (tight ? 11 : 0)).toFixed(1)}" y="${(ly - (tight ? 4 : 13)).toFixed(1)}" text-anchor="${tight ? "start" : "middle"}">${fmt(line[n])}</text>`;
+  const sx = P.l + gw*sel + gw/2, sy = yR(line[sel]);
+  // net profit label for the selected month, centered above its marker with a
+  // ~9px gap (marker radius 6 + ~3px descent below the baseline)
+  g += `<text class="vlabel halo" x="${sx.toFixed(1)}" y="${(sy - 18).toFixed(1)}" text-anchor="middle">${fmt(line[sel])}</text>`;
   g += `<line class="axis" x1="${P.l}" x2="${w - P.r}" y1="${P.t + ih}" y2="${P.t + ih}"/>`;
   return `<svg viewBox="0 0 ${w} ${H}" width="${w}" class="chart" role="img">${g}</svg>`;
 }
