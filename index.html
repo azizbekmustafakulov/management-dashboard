@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Executive Dashboard — Demo</title>
+<title>Executive Dashboard - Demo</title>
 <style>
 :root{
   --accent:#0f6b5c;
@@ -196,6 +196,12 @@ tr.total td{font-weight:700;border-top:2px solid var(--line)}
   .main{padding:16px 14px calc(90px + env(safe-area-inset-bottom))}
   .kpis{grid-template-columns:repeat(2,1fr)}
   .two{grid-template-columns:1fr}
+  /* Balance sheet on phone: no min-width, stacked tables, label wraps and
+     takes the remaining space, amount column shrinks to its content */
+  #sub-bs .tbl-wrap table{min-width:0}
+  #sub-bs th,#sub-bs td{padding:8px 7px}
+  #sub-bs th:first-child,#sub-bs td:first-child{width:auto;white-space:normal}
+  #sub-bs th:last-child,#sub-bs td:last-child{width:1%;white-space:nowrap}
   .sec-head h1{font-size:19px}
   .topbar{width:100%;margin-bottom:14px}
   .seg{display:flex;width:100%}
@@ -516,7 +522,7 @@ const DATA = {
     aging:[ {name:"0–15 days",value:71,cls:"bar-1"},{name:"16–30 days",value:33,cls:"bar-2"},{name:"31–60 days",value:26,cls:"bar-3"},{name:"60+ days",value:12,cls:"bar-4"} ],
     findings:[
       "Gross margin improved to 38.0% in September, helped by strong sales of tea and coffee.",
-      "38 mln UZS of receivables are more than 30 days late — start collection calls this week.",
+      "38 mln UZS of receivables are more than 30 days late - start collection calls this week.",
       "Sugar margin fell to 22% because supplier prices rose faster than shelf prices."
     ]
   }
@@ -872,7 +878,7 @@ document.getElementById("nav").addEventListener("click", e => {
   document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("active", b === btn));
   showSection("sec-" + btn.dataset.tab);
   window.scrollTo(0, 0);
-  renderAll(); /* section just became visible — measure chart widths */
+  renderAll(); /* section just became visible - measure chart widths */
 });
 
 document.getElementById("fin-tabs").addEventListener("click", e => {
@@ -881,7 +887,7 @@ document.getElementById("fin-tabs").addEventListener("click", e => {
   document.querySelectorAll("#fin-tabs button").forEach(b => b.classList.toggle("active", b === btn));
   document.querySelectorAll(".sub-pane").forEach(p =>
     p.style.display = (p.id === "sub-" + btn.dataset.sub) ? "" : "none");
-  renderAll(); /* cash/balance panes were hidden — measure now */
+  renderAll(); /* cash/balance panes were hidden - measure now */
 });
 
 document.getElementById("month-seg").addEventListener("click", e => {
